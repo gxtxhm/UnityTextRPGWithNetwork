@@ -10,7 +10,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 public enum ResultBattle
 {
@@ -24,6 +23,8 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     public bool IsLoadData = false;
+
+    public bool IsPassed = false;
 
     public bool IsSkip = false;
 
@@ -124,6 +125,7 @@ public class GameManager : MonoBehaviour
     public void LoadDungeonData(ProgressGameData data)
     {
         CurCount = data.currentFloor;
+        IsPassed = data.bossDefeated;
     }
 
     public void KillMonster()
@@ -192,6 +194,22 @@ public class GameManager : MonoBehaviour
         //Debug.Log(UtilTextManager.EnterDungeon);
 
         StartCoroutine(LoadBattleScene());
+    }
+
+    public void MoveLobby()
+    {
+
+    }
+
+    IEnumerator LoadLobbyScene()
+    {
+        AsyncOperation operation = SceneManager.LoadSceneAsync("Net_LobbyScene");
+
+        while(!operation.isDone)
+        {
+            yield return null;
+        }
+        UIManager.Instance.SetLobbySceneUI();
     }
 
     IEnumerator LoadBattleScene()

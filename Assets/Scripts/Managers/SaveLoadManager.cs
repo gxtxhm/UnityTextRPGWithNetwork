@@ -16,11 +16,11 @@ public class SaveLoadManager : MonoBehaviour
 
     // Desktop
     private string saveFolderPath = "C:\\Users\\ParkSungJin\\Desktop\\SaveFiles";
-    
+
     // Laptop
     //private string saveFolderPath = "C:\\Users\\PSJ\\Desktop\\SaveFile";
 
-
+    List<FileInfo> saveFiles = new List<FileInfo>();
 
     private void Awake()
     {
@@ -43,7 +43,7 @@ public class SaveLoadManager : MonoBehaviour
         {
             player = new PlayerData(GameManager.Instance.Player),
             inventory = ItemManager.Instance.Inventory.ToDictionary(i => i.Key, i => i.Value.Count),
-            dungeonProgress = new ProgressGameData(GameManager.Instance.CurCount, GameManager.Instance.Boss.IsDead)
+            dungeonProgress = new ProgressGameData(GameManager.Instance.CurCount, GameManager.Instance.IsPassed)
         };
 
         string json = JsonConvert.SerializeObject(saveData, Formatting.Indented);
@@ -51,6 +51,13 @@ public class SaveLoadManager : MonoBehaviour
         string timestamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
         string saveFilePath = Path.Combine(saveFolderPath, $"Save_{timestamp}.json");
         File.WriteAllText(saveFilePath, json);
+        
+        if(saveFiles.Count() >= 3)
+        {
+            saveFiles[0].Delete();
+            saveFiles.RemoveAt(0);   
+        }
+        saveFiles.Add(new FileInfo(saveFilePath));
 
         Debug.Log("게임 저장 완료: " + saveFolderPath);
     }
@@ -65,6 +72,7 @@ public class SaveLoadManager : MonoBehaviour
             FileInfo fileInfo = new FileInfo(file);
             string fileName = Path.GetFileNameWithoutExtension(fileInfo.Name); // 확장자 제거
             //string lastModified = fileInfo.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss"); // 저장 시간 포맷
+            saveFiles.Add(fileInfo);
 
             buttons[count].gameObject.GetComponentInChildren<TextMeshProUGUI>().text = fileName;
             buttons[count].onClick.AddListener(() => { LoadDataFromJson(fileInfo.FullName); });

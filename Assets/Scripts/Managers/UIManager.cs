@@ -5,10 +5,6 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System.Collections;
-using System.Xml.Schema;
-using static Unity.VisualScripting.Metadata;
-using Unity.VisualScripting;
-using static UnityEditor.Progress;
 
 public enum PotionType
 {
@@ -43,6 +39,8 @@ public class UIManager : MonoBehaviour
     public GameObject MainMenuBtn;
     [SerializeField]
     public GameObject SaveBtn;
+    [SerializeField]
+    public GameObject NetworkBtn;
 
     [Header("About Intro in MainScene")]
     [SerializeField]
@@ -88,6 +86,18 @@ public class UIManager : MonoBehaviour
     public GameObject EndGamePanelPrefab;
     [SerializeField]
     public GameObject EndGamePanel;
+
+    // Lobby Scene 관련
+    [Header("About LobbyScene")]
+    [SerializeField]
+    GameObject Content;
+    [SerializeField]
+    GameObject JoinRoomBtnPrefab;
+    [SerializeField]
+    GameObject CreateRoomBtn;
+    [SerializeField]
+    GameObject ExitLobbyBtn;
+
 
     GameObject _inventory;
     // Inventory 관련
@@ -155,6 +165,7 @@ public class UIManager : MonoBehaviour
         EnterDungeonBtn = GameObject.Find("EnterDungeonBtn");
         MainMenuBtn = GameObject.Find("MainMenuBtn");
         SaveBtn = GameObject.Find("SaveBtn");
+        NetworkBtn = GameObject.Find("EnterNetwork");
 
         IntroPanel = GameObject.Find("IntroPanel");
         IntroText = GameObject.Find("IntroText").GetComponent<TextMeshProUGUI>();
@@ -166,7 +177,7 @@ public class UIManager : MonoBehaviour
         if (playerInfoBtn == null || EnterDungeonBtn == null ||
             MainMenuBtn == null || IntroPanel == null ||
             IntroText == null || IntroInputField == null ||
-            LastText == null || SaveBtn == null)
+            LastText == null || SaveBtn == null || NetworkBtn == null)
         {
             Debug.Log("Error Find Buttons in SetMainSceneUI"); return;
         }
@@ -175,6 +186,13 @@ public class UIManager : MonoBehaviour
         EnterDungeonBtn.GetComponent<Button>().onClick.AddListener(GameManager.Instance.MoveDungeon);
         MainMenuBtn.GetComponent<Button>().onClick.AddListener(GameManager.Instance.OnMainMenuButton);
         SaveBtn.GetComponent<Button>().onClick.AddListener(SaveLoadManager.Instance.SaveGame);
+        NetworkBtn.GetComponent<Button>().onClick.AddListener(() => 
+        {
+            if (GameManager.Instance.IsPassed)
+                NetworkManager.Instance.Connect();
+            else
+                Debug.Log("먼저 싱글플레이를 통과해야함");
+        });
         IntroInputField.GetComponent<TMP_InputField>().onEndEdit.AddListener(CompleteInputName);
 
         //IntroInputField.SetActive(false);
@@ -261,6 +279,21 @@ public class UIManager : MonoBehaviour
         AdjustLineSpacing();
     }
 
+
+    #region About Lobby
+
+    public void OnAddRoomUI()
+    {
+
+    }
+
+    public void SetLobbySceneUI()
+    {
+        JoinRoomBtnPrefab = Resources.Load<GameObject>("Prefabs/JoinRoomButton");
+        ExitLobbyBtn = GameObject.Find("ExitLobbyBtn");
+        CreateRoomBtn = GameObject.Find("CreateRoomBtn");
+    }
+    #endregion
     public GameObject CreateItemUI(string address)
     {
         GameObject item = Resources.Load<GameObject>(address);
@@ -539,6 +572,6 @@ public class UIManager : MonoBehaviour
         GameObject go = GameObject.Find("Panels");
         EndGamePanel.transform.SetParent(go.transform,false);
 
-        EndGamePanel.GetComponentInChildren<Button>().onClick.AddListener(GameManager.Instance.OnMainMenuButton);
+        EndGamePanel.GetComponentInChildren<Button>().onClick.AddListener(GameManager.Instance.MoveTown);
     }
 }

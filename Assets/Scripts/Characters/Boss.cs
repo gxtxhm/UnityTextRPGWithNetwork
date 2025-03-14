@@ -17,6 +17,7 @@ public class Boss : Monster
         base.Awake();
         Name = "고대의 켈타르";
         OnDeadEvent += () => IsDead = true;
+        OnDeadEvent += () => GameManager.Instance.IsPassed = true;
     }
     // 보스는 뭔가 더 추가하기  OnDeadEvent 여기에 , 엔딩 추가하기
 }
