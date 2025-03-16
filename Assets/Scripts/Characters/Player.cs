@@ -11,7 +11,6 @@ using UnityEngine.UI;
 using TMPro;
 using System.Collections;
 using Newtonsoft.Json.Linq;
-using static System.Net.Mime.MediaTypeNames;
 
 public class Player : MonoBehaviour, IGameCharacter, IInfoProvider
 {

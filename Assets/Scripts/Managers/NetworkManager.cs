@@ -5,6 +5,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+//using System.Diagnostics;
 
 
 public class NetworkManager : MonoBehaviourPunCallbacks
@@ -47,19 +48,39 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         GameManager.Instance.MoveLobby();
     }
 
-    public void CreateRoom()
+    public void CreateRoom(string RoomName="")
     {
-        PhotonNetwork.CreateRoom($"Room{CountRoomNum}", new RoomOptions { MaxPlayers = 4 });
+        string name = (RoomName == "") ? $"Room{CountRoomNum}" : RoomName;
+        PhotonNetwork.CreateRoom(name, new RoomOptions { MaxPlayers = 4 });
     }
 
     public override void OnCreatedRoom()
     {
         base.OnCreatedRoom();
         CountRoomNum++;
+        Debug.Log("방 개설 완료!");
+        UIManager.Instance.SetJoinRoomUI(PhotonNetwork.CurrentRoom.Name);
     }
 
     public override void OnPlayerEnteredRoom(Photon.Realtime.Player player)
     {
         Debug.Log("");
+    }
+
+    public void DisConnect()
+    {
+        PhotonNetwork.Disconnect();
+    }
+    public override void OnDisconnected(DisconnectCause cause)
+    {
+        if(cause == DisconnectCause.DisconnectByClientLogic)
+        {
+            Debug.Log("정상 disconnect");
+            GameManager.Instance.MoveTown();
+        }
+        else
+        {
+            Debug.LogWarning($"Exception of Disconnected {cause}");
+        }
     }
 }

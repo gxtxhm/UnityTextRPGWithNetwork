@@ -5,6 +5,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System.Collections;
+using Unity.Properties;
 
 public enum PotionType
 {
@@ -94,10 +95,15 @@ public class UIManager : MonoBehaviour
     [SerializeField]
     GameObject JoinRoomBtnPrefab;
     [SerializeField]
-    GameObject CreateRoomBtn;
+    GameObject CreateRoomPanelBtn;
     [SerializeField]
     GameObject ExitLobbyBtn;
 
+    GameObject RoomPanel;
+    GameObject CreateRoomPanel;
+    GameObject CreateRoomBtn;
+    GameObject CancelCreateRoomBtn;
+    GameObject RoomNameInputField;
 
     GameObject _inventory;
     // Inventory 관련
@@ -120,7 +126,7 @@ public class UIManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
             buttonPrefab = Resources.Load<GameObject>("Prefabs/ItemButton");
             EndGamePanelPrefab = Resources.Load<GameObject>("Prefabs/EndGamePanel");
-            
+            JoinRoomBtnPrefab = Resources.Load<GameObject>("Prefabs/JoinRoomButton");
         }
     }
     private void Start()
@@ -289,9 +295,55 @@ public class UIManager : MonoBehaviour
 
     public void SetLobbySceneUI()
     {
-        JoinRoomBtnPrefab = Resources.Load<GameObject>("Prefabs/JoinRoomButton");
         ExitLobbyBtn = GameObject.Find("ExitLobbyBtn");
+        CreateRoomPanelBtn = GameObject.Find("CreateRoomPanelBtn");
+
+        RoomPanel = GameObject.Find("RoomPanel");
+
+        CreateRoomPanel = GameObject.Find("CreateRoomPanel");
         CreateRoomBtn = GameObject.Find("CreateRoomBtn");
+        CancelCreateRoomBtn = GameObject.Find("CancelCreateRoomBtn");
+        RoomNameInputField = GameObject.Find("RoomNameInputField");
+
+        if (ExitLobbyBtn == null || CreateRoomPanelBtn == null ||
+            CreateRoomPanel == null || CreateRoomBtn == null ||
+            CancelCreateRoomBtn == null || RoomNameInputField == null
+            || RoomPanel == null)
+        {
+            Debug.LogError("Null Error in SetLobbySceneUi()");
+            return;
+        }
+        RoomPanel.SetActive(false);
+        // 메인메뉴로 돌아가기 버튼
+        ExitLobbyBtn.GetComponent<Button>().onClick.AddListener(
+            () => { NetworkManager.Instance.DisConnect(); }
+            );
+        // 방 패널 만들기 버튼
+        CreateRoomPanelBtn.GetComponent<Button>().onClick.AddListener(
+            () => { CreateRoomPanel.SetActive(true); });
+
+        // 방만들기 패널 관련
+        CreateRoomPanel.SetActive(false);
+        CreateRoomBtn.GetComponent<Button>().onClick.AddListener(
+            () => { NetworkManager.Instance.CreateRoom(
+                RoomNameInputField.GetComponentInChildren<TextMeshProUGUI>().text); });
+        CancelCreateRoomBtn.GetComponent<Button>().onClick.AddListener(() => { CreateRoomPanel.SetActive(false); });
+
+
+    }
+
+    public void SetJoinRoomUI(string roomName)
+    {
+        CreateRoomPanel.SetActive(false);
+        RoomPanel.SetActive(true);
+
+        GameObject InRoomTitleText = GameObject.Find("InRoomTitleText");
+        InRoomTitleText.GetComponent<TextMeshProUGUI>().text = roomName;
+
+        GameObject ReadyBtn = GameObject.Find("ReadyButton");
+        ReadyBtn.GetComponent<Button>().onClick.AddListener(() => { Debug.Log("Clicked Ready!"); });
+        GameObject exitBtn = GameObject.Find("ExitButton");
+        exitBtn.GetComponent<Button>().onClick.AddListener(() => { RoomPanel.SetActive(false); });
     }
     #endregion
     public GameObject CreateItemUI(string address)

@@ -113,12 +113,17 @@ public class GameManager : MonoBehaviour
 
     public void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))
         {
-            if(UtilTextManager.Instance.IsUsed && IsSkip==false)
+            if (UtilTextManager.Instance.IsUsed && IsSkip == false)
             {
                 IsSkip = true;
             }
+        }
+        // For Test
+        else if (Input.GetKeyDown(KeyCode.T))
+        {
+            IsPassed = true;
         }
     }
 
@@ -198,7 +203,7 @@ public class GameManager : MonoBehaviour
 
     public void MoveLobby()
     {
-
+        StartCoroutine (LoadLobbyScene());
     }
 
     IEnumerator LoadLobbyScene()
