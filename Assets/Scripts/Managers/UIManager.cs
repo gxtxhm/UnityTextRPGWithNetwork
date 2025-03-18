@@ -106,6 +106,7 @@ public class UIManager : MonoBehaviour
     GameObject CreateRoomBtn;
     GameObject CancelCreateRoomBtn;
     GameObject RoomNameInputField;
+    GameObject JoinRoomContent;
 
     GameObject _inventory;
     // Inventory 관련
@@ -133,7 +134,9 @@ public class UIManager : MonoBehaviour
     }
     private void Start()
     {
-        
+        PoolingManager.Instance.AddInMap(PoolingType.JoinRoomBtn, JoinRoomBtnPrefab);
+        // TODO : 나중에 고칠 것.
+        PoolingManager.Instance.AddInMap(PoolingType.InventoryItemBtn, buttonPrefab);
     }
 
     public void LoadFilePanelInit()
@@ -307,10 +310,12 @@ public class UIManager : MonoBehaviour
         CancelCreateRoomBtn = GameObject.Find("CancelCreateRoomBtn");
         RoomNameInputField = GameObject.Find("RoomNameInputField");
 
+        JoinRoomContent = GameObject.Find("JoinRoomContent");
+
         if (ExitLobbyBtn == null || CreateRoomPanelBtn == null ||
             CreateRoomPanel == null || CreateRoomBtn == null ||
             CancelCreateRoomBtn == null || RoomNameInputField == null
-            || RoomPanel == null)
+            || RoomPanel == null || JoinRoomContent == null)
         {
             Debug.LogError("Null Error in SetLobbySceneUi()");
             return;
@@ -333,7 +338,20 @@ public class UIManager : MonoBehaviour
 
     public void UpdateRoomListUI(List<RoomInfo> roomInfos)
     {
+        // 우선 사용할 곳이 여기뿐이니까 
+        PoolingManager.Instance.InActiveAllItemByType(PoolingType.JoinRoomBtn);
 
+        foreach(var roomInfo in roomInfos)
+        {
+            // 여기서 추가하기
+            ItemStruct item = PoolingManager.Instance.GetItem(PoolingType.JoinRoomBtn);
+            item.gameObject.GetComponentInChildren<TextMeshProUGUI>().text =
+                $"{roomInfo.Name}  {roomInfo.PlayerCount}/{roomInfo.MaxPlayers}";
+
+            item.gameObject.GetComponent<Button>().onClick.AddListener(() => NetworkManager.Instance.JoinRoom(roomInfo.Name));
+            item.gameObject.transform.SetParent(JoinRoomContent.transform);
+            item.gameObject.SetActive(true);
+        }
     }
 
     public void OnCreateRoomBtn()

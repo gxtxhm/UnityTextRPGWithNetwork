@@ -78,9 +78,21 @@ public class NetworkManager : MonoBehaviourPunCallbacks
         PhotonNetwork.JoinLobby();
     }
 
+    public void JoinRoom(string name)
+    {
+        PhotonNetwork.JoinRoom(name);
+    }
+
     public override void OnPlayerEnteredRoom(Photon.Realtime.Player player)
     {
-        Debug.Log("");
+        Debug.Log("방 입장완료!");
+
+    }
+
+    public override void OnJoinRoomFailed(short returnCode, string message)
+    {
+        base.OnJoinRoomFailed(returnCode, message);
+        Debug.LogError(message);
     }
 
     public void DisConnect()
