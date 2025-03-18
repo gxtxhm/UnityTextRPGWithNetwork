@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Photon.Pun;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -208,6 +209,8 @@ public class GameManager : MonoBehaviour
 
     IEnumerator LoadLobbyScene()
     {
+        if (SceneManagerHelper.ActiveSceneName == "Net_LobbyScene")
+            yield break;
         AsyncOperation operation = SceneManager.LoadSceneAsync("Net_LobbyScene");
 
         while(!operation.isDone)

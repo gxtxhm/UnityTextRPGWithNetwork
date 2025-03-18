@@ -34,6 +34,7 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     public override void OnConnectedToMaster()
     {
         Debug.Log("서버접속 완료!!");
+        PhotonNetwork.NickName = GameManager.Instance.Player.Name;
         JoinLobby();
     }
 
@@ -58,8 +59,23 @@ public class NetworkManager : MonoBehaviourPunCallbacks
     {
         base.OnCreatedRoom();
         CountRoomNum++;
-        Debug.Log("방 개설 완료!");
+        Debug.Log($"{PhotonNetwork.CurrentRoom.Name}방 개설 완료!");
         UIManager.Instance.SetJoinRoomUI(PhotonNetwork.CurrentRoom.Name);
+    }
+
+    // lobby에 있을 때 클라이언트에서 실행됨.
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)
+    {
+        base.OnRoomListUpdate(roomList);
+        UIManager.Instance.UpdateRoomListUI(roomList);
+    }
+
+    public void LeaveRoom()=>PhotonNetwork.LeaveRoom();
+
+    public override void OnLeftRoom()
+    {
+        Debug.Log("OnLeftRoom");
+        PhotonNetwork.JoinLobby();
     }
 
     public override void OnPlayerEnteredRoom(Photon.Realtime.Player player)

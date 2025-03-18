@@ -6,6 +6,8 @@ using TMPro;
 using UnityEngine.UI;
 using System.Collections;
 using Unity.Properties;
+using Photon.Pun;
+using Photon.Realtime;
 
 public enum PotionType
 {
@@ -324,19 +326,26 @@ public class UIManager : MonoBehaviour
 
         // 방만들기 패널 관련
         CreateRoomPanel.SetActive(false);
-        CreateRoomBtn.GetComponent<Button>().onClick.AddListener(
-            () => { NetworkManager.Instance.CreateRoom(
-                RoomNameInputField.GetComponentInChildren<TextMeshProUGUI>().text); });
+        CreateRoomBtn.GetComponent<Button>().onClick.AddListener(OnCreateRoomBtn);
         CancelCreateRoomBtn.GetComponent<Button>().onClick.AddListener(() => { CreateRoomPanel.SetActive(false); });
 
+    }
 
+    public void UpdateRoomListUI(List<RoomInfo> roomInfos)
+    {
+
+    }
+
+    public void OnCreateRoomBtn()
+    {
+        NetworkManager.Instance.CreateRoom(RoomNameInputField.GetComponentInChildren<TextMeshProUGUI>().text);
+        RoomNameInputField.GetComponentInChildren<TextMeshProUGUI>().text = "";
     }
 
     public void SetJoinRoomUI(string roomName)
     {
         CreateRoomPanel.SetActive(false);
         RoomPanel.SetActive(true);
-
         GameObject InRoomTitleText = GameObject.Find("InRoomTitleText");
         InRoomTitleText.GetComponent<TextMeshProUGUI>().text = roomName;
 
@@ -344,6 +353,21 @@ public class UIManager : MonoBehaviour
         ReadyBtn.GetComponent<Button>().onClick.AddListener(() => { Debug.Log("Clicked Ready!"); });
         GameObject exitBtn = GameObject.Find("ExitButton");
         exitBtn.GetComponent<Button>().onClick.AddListener(() => { RoomPanel.SetActive(false); });
+
+        TextMeshProUGUI[] userList = GameObject.Find("UserList").GetComponentsInChildren<TextMeshProUGUI>();
+        int count = 0;
+
+        foreach (var user in userList)
+        {
+            user.text = "";
+        }
+
+        foreach(var p in PhotonNetwork.PlayerList)
+        {
+            userList[count].text = p.NickName;count++;
+        }
+
+        Canvas.ForceUpdateCanvases();
     }
     #endregion
     public GameObject CreateItemUI(string address)
