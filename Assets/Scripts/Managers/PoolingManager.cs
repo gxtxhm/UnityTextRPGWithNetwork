@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Rendering;
 using UnityEngine;
-using static UnityEngine.RuleTile.TilingRuleOutput;
 
 /// <summary>
 /// 풀에 반환되려면 ReturnToPool 함수를 호출해야 합니다. 
@@ -23,7 +22,7 @@ public class ItemStruct
     public void ReturnToPool()
     {
         isActive = false;
-        gameObject.transform.SetParent(null);
+        gameObject.transform.SetParent(PoolingManager.Instance.gameObject.transform);
         gameObject.SetActive(false);
     }
 }
@@ -36,19 +35,25 @@ public enum PoolingType
 
 public class PoolingManager : MonoBehaviour
 {
-    public static PoolingManager Instance = new PoolingManager();
+    public static PoolingManager Instance;
     Dictionary<PoolingType, List<ItemStruct>> poolingMap;
 
     Dictionary<PoolingType, GameObject> prefabsMap;
 
     const int DefaultPoolSize = 10;
 
-    PoolingManager()
+    private void Awake()
     {
+        if (Instance == null)
+            Instance = this;
+        else
+            Destroy(gameObject);
+
         poolingMap = new Dictionary<PoolingType, List<ItemStruct>>();
         prefabsMap = new Dictionary<PoolingType, GameObject>();
+        DontDestroyOnLoad(gameObject);
     }
-        
+    
 
     public void AddInMap(PoolingType name,GameObject prefab)
     {
@@ -62,6 +67,7 @@ public class PoolingManager : MonoBehaviour
         {
             GameObject go = Instantiate(prefab);
             go.SetActive(false);
+            go.transform.SetParent(transform);
             poolingMap[name].Add(new ItemStruct(false,go));
         }
     }
@@ -84,7 +90,13 @@ public class PoolingManager : MonoBehaviour
 
         // 만약 전부 사용중이라면
         for(int i=0;i<DefaultPoolSize;i++)
-            poolingMap[name].Add(new ItemStruct(false, Instantiate(prefabsMap[name])));
+        {
+            GameObject go = Instantiate(prefabsMap[name]);
+            go.transform.SetParent(transform);
+            poolingMap[name].Add(new ItemStruct(false, go));
+        }
+
+        
 
         poolingMap[name][^DefaultPoolSize].isActive = true;
         return poolingMap[name][^DefaultPoolSize];

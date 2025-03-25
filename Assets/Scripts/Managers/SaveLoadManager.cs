@@ -15,10 +15,10 @@ public class SaveLoadManager : MonoBehaviour
     public static SaveLoadManager Instance { get; private set; }
 
     // Desktop
-    //private string saveFolderPath = "C:\\Users\\ParkSungJin\\Desktop\\SaveFiles";
+    private string saveFolderPath = "C:\\Users\\ParkSungJin\\Desktop\\SaveFiles";
 
     // Laptop
-    private string saveFolderPath = "C:\\Users\\PSJ\\Desktop\\SaveFile";
+    //private string saveFolderPath = "C:\\Users\\PSJ\\Desktop\\SaveFile";
 
     List<FileInfo> saveFiles = new List<FileInfo>();
 
@@ -33,8 +33,7 @@ public class SaveLoadManager : MonoBehaviour
 
     private void Start()
     {
-        //saveFolderPath = Application.persistentDataPath;
-        //LoadSaveFiles();
+
     }
 
     public void SaveGame()
@@ -97,17 +96,16 @@ public class SaveLoadManager : MonoBehaviour
             setting.itemInfo.data = JsonConvert.DeserializeObject<Dictionary<string, ItemData>>(json);
             if (setting.itemInfo.data == null)
             {
-                Debug.LogError("⚠️ JSON 변환 실패: 변환된 데이터가 NULL입니다!");
-                return;
+                throw new Exception();
+                
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"⚠️ JSON 변환 중 오류 발생: {e.Message}");
+            Debug.LogError($"JSON 변환 중 오류 발생: {e.Message}");
             return;
         }
 
-        // 초기화 방지
         setting.itemInfo.data = setting.itemInfo.data ?? new Dictionary<string, ItemData>();
 
         // 아이템 정보 로드

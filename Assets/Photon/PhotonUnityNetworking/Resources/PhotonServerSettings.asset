@@ -39,6 +39,14 @@ MonoBehaviour:
   - DestroySpaceship
   - Fire
   - RespawnSpaceship
+  - OnCancelReadyPlayer
+  - OnReadyPlayer
+  - OnClickReadyButton
+  - CallUIUpdate
+  - CallCancelUIUpdate
+  - LoadLastScene
+  - SendMessage
+  - SendChatMessage
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

@@ -26,10 +26,6 @@ public abstract class Item : IInfoProvider
 
         return s;
     }
-    //public virtual void Use()
-    //{
-    //    Debug.Log($"{Name}아이템을 사용!");
-    //}
 };
 
 public class HpPotion : Item,IUseableItem
@@ -78,7 +74,7 @@ public class AttackPotion : DurationItem
         Key = "AttackPotion";
         Type = config != null ? Enum.Parse<ItemType>(config.ItemType) : ItemType.AttackPotion; // ✅ JSON에서 `ItemType` 불러오기
         Name = config != null ? config.Name : "공격력 증가 포션";
-        Description = config != null ? config.Description : $"사용 시 {3}턴 동안 공격력이 {BonusDamage}만큼 증가합니다.";
+        Description = config != null ? config.Description : $"사용 시 {3}턴 동안 공격력이 {10}만큼 증가합니다.";
         BonusDamage = config != null ? config.Effect : 10;
         Duration = config != null ? config.Duration : _duration;
     }
@@ -90,7 +86,6 @@ public class AttackPotion : DurationItem
     }
     public override void EndEffect(Player player) 
     {
-        //if (GameManager.Instance.Player == null) return;
         GameManager.Instance.Player.AttackPower -= BonusDamage;
         base.EndEffect(player);
     }

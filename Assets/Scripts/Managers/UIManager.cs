@@ -107,6 +107,12 @@ public class UIManager : MonoBehaviour
     GameObject CancelCreateRoomBtn;
     GameObject RoomNameInputField;
     GameObject JoinRoomContent;
+    GameObject CountUserText;
+    GameObject PlayerInfoTextInLobby;
+    TMP_InputField InputChatField;
+    TextMeshProUGUI ChatText;
+
+    TextMeshProUGUI[] userListText;
 
     GameObject _inventory;
     // Inventory 관련
@@ -120,6 +126,8 @@ public class UIManager : MonoBehaviour
     Sprite[] potionSprites;
 
     public bool IsUsedSliderEffect = false;
+
+    public bool IsSceneLoaded = false;
 
     public void Awake()
     {
@@ -137,6 +145,8 @@ public class UIManager : MonoBehaviour
         PoolingManager.Instance.AddInMap(PoolingType.JoinRoomBtn, JoinRoomBtnPrefab);
         // TODO : 나중에 고칠 것.
         PoolingManager.Instance.AddInMap(PoolingType.InventoryItemBtn, buttonPrefab);
+
+        NetworkManager.Instance.OnChangedPlayerCount += UpdateLobbyUserText;
     }
 
     public void LoadFilePanelInit()
@@ -152,6 +162,8 @@ public class UIManager : MonoBehaviour
 
     public void SetStartSceneUI()
     {
+        IsSceneLoaded = false;
+
         startBtn = GameObject.Find("StartBtn");
         endBtn = GameObject.Find("EndBtn");
         LoadBtn = GameObject.Find("LoadBtn");
@@ -172,6 +184,8 @@ public class UIManager : MonoBehaviour
 
     public void SetMainSceneUI()
     {
+        IsSceneLoaded = false;
+
         playerInfoBtn = GameObject.Find("PlayerInfoBtn");
         EnterDungeonBtn = GameObject.Find("EnterDungeonBtn");
         MainMenuBtn = GameObject.Find("MainMenuBtn");
@@ -234,6 +248,8 @@ public class UIManager : MonoBehaviour
 
     public void SetBattleSceneUI()
     {
+        IsSceneLoaded = false;
+
         potionSprites = Resources.LoadAll<Sprite>("Image/Portions");
 
         GameObject buttonsPanel = GameObject.Find("ButtonsPanel");
@@ -300,6 +316,8 @@ public class UIManager : MonoBehaviour
 
     public void SetLobbySceneUI()
     {
+        IsSceneLoaded = true;
+
         ExitLobbyBtn = GameObject.Find("ExitLobbyBtn");
         CreateRoomPanelBtn = GameObject.Find("CreateRoomPanelBtn");
 
@@ -311,13 +329,16 @@ public class UIManager : MonoBehaviour
         RoomNameInputField = GameObject.Find("RoomNameInputField");
 
         JoinRoomContent = GameObject.Find("JoinRoomContent");
+        CountUserText = GameObject.Find("CountUserText");
+        PlayerInfoTextInLobby = GameObject.Find("PlayerInfoText");
 
         if (ExitLobbyBtn == null || CreateRoomPanelBtn == null ||
             CreateRoomPanel == null || CreateRoomBtn == null ||
             CancelCreateRoomBtn == null || RoomNameInputField == null
-            || RoomPanel == null || JoinRoomContent == null)
+            || RoomPanel == null || JoinRoomContent == null ||
+            CountUserText == null || PlayerInfoTextInLobby == null)
         {
-            Debug.LogError("Null Error in SetLobbySceneUi()");
+            Debug.LogError("Null Error in SetLobbySceneUI()");
             return;
         }
         RoomPanel.SetActive(false);
@@ -327,13 +348,24 @@ public class UIManager : MonoBehaviour
             );
         // 방 패널 만들기 버튼
         CreateRoomPanelBtn.GetComponent<Button>().onClick.AddListener(
-            () => { CreateRoomPanel.SetActive(true); });
+            () => { 
+                CreateRoomPanel.SetActive(true);
+                RoomNameInputField.GetComponent<TMP_InputField>().text = "";
+            });
 
         // 방만들기 패널 관련
         CreateRoomPanel.SetActive(false);
         CreateRoomBtn.GetComponent<Button>().onClick.AddListener(OnCreateRoomBtn);
         CancelCreateRoomBtn.GetComponent<Button>().onClick.AddListener(() => { CreateRoomPanel.SetActive(false); });
 
+        PlayerInfoTextInLobby.GetComponent<TextMeshProUGUI>().text = $"Lv{GameManager.Instance.Player.Level} {GameManager.Instance.Player.Name}";
+        PlayerInfoTextInLobby.GetComponent<HoverText>().SetPanel(GameManager.Instance.Player);
+    }
+
+    public void UpdateLobbyUserText(int count)
+    {
+        CountUserText.GetComponent<TextMeshProUGUI>().text = $"접속 인원 : {count}명";
+        Canvas.ForceUpdateCanvases();
     }
 
     public void UpdateRoomListUI(List<RoomInfo> roomInfos)
@@ -343,6 +375,7 @@ public class UIManager : MonoBehaviour
 
         foreach(var roomInfo in roomInfos)
         {
+            if (roomInfo.RemovedFromList) continue;
             // 여기서 추가하기
             ItemStruct item = PoolingManager.Instance.GetItem(PoolingType.JoinRoomBtn);
             item.gameObject.GetComponentInChildren<TextMeshProUGUI>().text =
@@ -356,8 +389,9 @@ public class UIManager : MonoBehaviour
 
     public void OnCreateRoomBtn()
     {
-        NetworkManager.Instance.CreateRoom(RoomNameInputField.GetComponentInChildren<TextMeshProUGUI>().text);
-        RoomNameInputField.GetComponentInChildren<TextMeshProUGUI>().text = "";
+        NetworkManager.Instance.CreateRoom(RoomNameInputField.GetComponent<TMP_InputField>().text);
+        RoomNameInputField.GetComponent<TMP_InputField>().text = "";
+        CreateRoomPanel.SetActive(false);
     }
 
     public void SetJoinRoomUI(string roomName)
@@ -367,27 +401,163 @@ public class UIManager : MonoBehaviour
         GameObject InRoomTitleText = GameObject.Find("InRoomTitleText");
         InRoomTitleText.GetComponent<TextMeshProUGUI>().text = roomName;
 
-        GameObject ReadyBtn = GameObject.Find("ReadyButton");
-        ReadyBtn.GetComponent<Button>().onClick.AddListener(() => { Debug.Log("Clicked Ready!"); });
-        GameObject exitBtn = GameObject.Find("ExitButton");
-        exitBtn.GetComponent<Button>().onClick.AddListener(() => { RoomPanel.SetActive(false); });
+        InputChatField = GameObject.Find("InputChatField").GetComponent<TMP_InputField>();
+        InputChatField.onSubmit.AddListener((message) => 
+        { 
+            NetworkManager.Instance.OnChatSubmit(message);
+            InputChatField.text = "";
+            InputChatField.ActivateInputField();
+        });
 
-        TextMeshProUGUI[] userList = GameObject.Find("UserList").GetComponentsInChildren<TextMeshProUGUI>();
+        ChatText = GameObject.Find("ChatText").GetComponent<TextMeshProUGUI>();
+        ChatText.text = "";
+
+        GameObject StartBtn = GameObject.Find("StartButton");
+        GameObject ReadyBtn = GameObject.Find("ReadyButton");
+        // 방장인가
+        if (PhotonNetwork.IsMasterClient)
+        {
+            ReadyBtn.SetActive(false);
+            StartBtn.GetComponent<Button>().onClick.AddListener(() => 
+            { 
+                Debug.Log("게임을 시작합니다!");
+                NetworkManager.Instance.OnStartButton();
+            });
+            StartBtn.GetComponent<Button>().interactable = false;
+            UpdateStartButton();
+        }
+        else
+        {
+            StartBtn.SetActive(false);
+            ReadyBtn.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                if (GameManager.Instance.IsReady == false)
+                {
+                    GameManager.Instance.IsReady = true;
+                    NetworkManager.Instance.OnReadyPlayer();
+                }
+                else
+                {
+                    GameManager.Instance.IsReady = false;
+                    NetworkManager.Instance.OnCancelReadyPlayer();
+                }
+            });
+        }
+
+        
+        GameObject exitBtn = GameObject.Find("ExitButton");
+        exitBtn.GetComponent<Button>().onClick.AddListener(() => 
+        { 
+            RoomPanel.SetActive(false);
+            NetworkManager.Instance.LeaveRoom();
+            ReadyBtn.SetActive(true);
+        });
+
+       userListText = GameObject.Find("UserList").GetComponentsInChildren<TextMeshProUGUI>();
         int count = 0;
 
-        foreach (var user in userList)
+        foreach (var user in userListText)
         {
             user.text = "";
         }
 
         foreach(var p in PhotonNetwork.PlayerList)
         {
-            userList[count].text = p.NickName;count++;
+            if(p.IsMasterClient)
+            {
+                userListText[count].text = "★";
+            }
+            userListText[count].text += p.NickName;count++;
         }
 
         Canvas.ForceUpdateCanvases();
     }
+
+    public void OnUpdatePlayerListInRoom(bool state, Photon.Realtime.Player player)
+    {
+        // 입장
+        if(state == true)
+        {
+            foreach(var text in userListText)
+            {
+                if(text.text=="")
+                {
+                    text.text = player.NickName;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            foreach (var text in userListText)
+            {
+                if(text.text == player.NickName)
+                {
+                    text.text = "";
+                    break;
+                }
+            }
+        }
+        if(PhotonNetwork.IsMasterClient)
+        {
+            UpdateStartButton();
+        }
+    }
+
+    public void OnReadyPlayer(Photon.Realtime.Player player)
+    {
+        if(PhotonNetwork.IsMasterClient)
+        {
+            NetworkManager.Instance.CountReadyPlayer++;
+            UpdateStartButton();
+        }
+
+        foreach (var text in userListText)
+        {
+            if (text.text == player.NickName)
+            {
+                text.color = Color.red;
+                break;
+            }
+        }
+    }
+
+    public void OnCancelReadyPlayer(Photon.Realtime.Player player)
+    {
+        if(PhotonNetwork.IsMasterClient)
+            NetworkManager.Instance.CountReadyPlayer--;
+
+        foreach (var text in userListText)
+        {
+            if (text.text == player.NickName)
+            {
+                text.color = Color.white;
+                break;
+            }
+        }
+    }
+
+    public void UpdateStartButton()
+    {
+        if(PhotonNetwork.IsMasterClient)
+        {
+            GameObject StartBtn = GameObject.Find("StartButton");
+            if (NetworkManager.Instance.CountReadyPlayer == PhotonNetwork.CurrentRoom.PlayerCount - 1)
+                StartBtn.GetComponent<Button>().interactable = true;
+            else
+                StartBtn.GetComponent<Button>().interactable = false;
+        }
+    }
+
+    public void OnSubmittedMessage(string m)
+    {
+        // 대화창 업데이트
+        ChatText.text += m+"\n";
+    }
+
     #endregion
+
+
     public GameObject CreateItemUI(string address)
     {
         GameObject item = Resources.Load<GameObject>(address);

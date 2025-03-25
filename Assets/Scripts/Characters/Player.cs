@@ -18,23 +18,26 @@ public class Player : MonoBehaviour, IGameCharacter, IInfoProvider
     int _hp;
     int _exp = 0;
 
-    //public delegate void OnDead();
     public event UnityAction OnDeadEvent;
 
-    //public delegate void OnAttack();
     public event UnityAction OnAttackEvent;
+
+    public int Hp
+    {
+        get { return _hp; }
+        set
+        {
+            if (value <= 0) { _hp = 0; OnDeadEvent?.Invoke(); }
+            else if (value > MaxHp) { _hp = MaxHp; }
+            else { _hp = value; }
+        }
+    }
 
     public string Name { get; set; }
     public int Level { get; set; } = 1;
     public int Exp { get { return _exp; } set {GetExp(value);} }
     public int MaxExp { get; set; } = 10;
-    public int Hp { get { return _hp; }
-        set {
-            if (value <= 0) { _hp = 0; OnDeadEvent?.Invoke(); }
-            else if (value > MaxHp) { _hp = MaxHp; }
-            else { _hp = value; } 
-        } 
-    } 
+    
     public int AttackPower { get; set; } = 10;
     // 높을수록 데미지 더 받음. 
     public float DefenseRate { get; set; } = 1;
@@ -86,13 +89,11 @@ public class Player : MonoBehaviour, IGameCharacter, IInfoProvider
     public void Attack(Monster monster)
     {
         OnAttackEvent?.Invoke();
+
         UtilTextManager.Instance.PrintStringByTick($"용사{Name}가 {monster.Name}을 공격!", 0.005f,
             UIManager.Instance.BattleContext, () =>
             {
                 monster.TakeDamage(AttackPower);
-                //if (monster.Hp <= 0)
-                    //GameManager.Instance.KillMonster();
-
             }, false);
     }
 

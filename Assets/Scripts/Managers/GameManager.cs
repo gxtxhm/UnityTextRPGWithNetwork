@@ -31,6 +31,8 @@ public class GameManager : MonoBehaviour
 
     public bool IsPlayingCo = false;
 
+    public bool IsReady = false;
+
     public static int MonsterCount { get; } = BattleSetting.MonsterCount;
 
     private GameObject PlayerObj;
@@ -125,6 +127,7 @@ public class GameManager : MonoBehaviour
         else if (Input.GetKeyDown(KeyCode.T))
         {
             IsPassed = true;
+            Debug.Log("Passed For Test");
         }
     }
 

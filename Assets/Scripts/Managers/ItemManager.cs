@@ -229,7 +229,6 @@ public class ItemManager
     public void LoadItemsInfoFromJson(ItemInfo itemInfo)
     {
         Debug.Log("LoadItemsFromJson");
-        //string json = File.ReadAllText("items.json"); // ✅ JSON 파일 읽기
         itemConfigs = itemInfo.data;
     }
 

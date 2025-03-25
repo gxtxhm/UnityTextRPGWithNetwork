@@ -18,7 +18,6 @@ public class HoverText : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     GameObject panel;
     private void Awake()
     {
-        text = GetComponent<TextMeshProUGUI>();
         GameObject panelPrefab = Resources.Load<GameObject>("Prefabs/HoverInfoPanel");
         panel = Instantiate(panelPrefab);
         panel.transform.SetParent(transform, false);
@@ -51,7 +50,5 @@ public class HoverText : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     public void OnPointerExit(PointerEventData eventData)
     {
         panel.SetActive(false);
-        // Revert the text color or size when not hovered
-        //text.color = Color.white; // Example: revert to white
     }
 }

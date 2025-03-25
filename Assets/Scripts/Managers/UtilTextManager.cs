@@ -169,7 +169,6 @@ public class UtilTextManager : MonoBehaviour
         }
         UIManager.Instance.UpdateCanvas(sc);
         action?.Invoke();
-        //UIManager.Instance.UpdateUI();
         GameManager.Instance.IsSkip = false;
         IsUsed = false;
     }

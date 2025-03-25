@@ -20,4 +20,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Net_LobbyScene.unity
     guid: 68a7b96699126704e946780b9824da7f
+  - enabled: 1
+    path: Assets/Scenes/LastScene.unity
+    guid: 6783737d0aa45934b8e06e235c015c3f
   m_configObjects: {}
