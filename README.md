@@ -71,5 +71,6 @@
 
 `Dictionary<이름, List<GameObject>>` 형태로 실제 오브젝트를 직접 관리하는 방식으로 변경
 
+### 시연 영상
 https://www.youtube.com/watch?v=HJFJ_HV83JI
 
